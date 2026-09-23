@@ -42,7 +42,7 @@ Proyecto desarrollado como **Trabajo de Fin de Grado** del Ciclo Formativo de Gr
 
 1. Clona el repositorio dentro de tu carpeta `htdocs` de XAMPP:
 ```bash
-   git clone https://github.com/avarona94/ufo-global-map.git
+   git clone https://github.com/ken4ever/ufo-global-map.git
 ```
 2. Crea la base de datos `ovni_db` en phpMyAdmin e importa el archivo `avistamientos.sql`
 3. Copia `config.example.php` como `config.php` y define tu usuario/contraseña de administrador:
