@@ -91,4 +91,4 @@ MIT License — ver [LICENSE](LICENSE)
 
 ---
 
-**Autor:** Álvaro Varona — [GitHub](https://github.com/avarona94)
+**Autor:** Álvaro Varona — [GitHub](https://github.com/ken4ever)
