@@ -52,6 +52,69 @@ select {
 }
 select:focus { outline: none; border-color: #39ff14; }
 
+/* ── Buscador en panel ───────────────────────────────────────── */
+#panel-buscador {
+  position: relative;
+  flex-shrink: 0;
+  margin-bottom: 10px;
+}
+
+#panel-buscador-input {
+  width: 100%;
+  padding: 9px 34px 9px 10px;
+  background: #1a1a2e;
+  border: 1px solid #2a2a4a;
+  border-radius: 6px;
+  color: #fff;
+  font-size: 13px;
+  outline: none;
+  transition: border-color 0.2s;
+}
+#panel-buscador-input:focus { border-color: #39ff14; }
+#panel-buscador-input::placeholder { color: #555; }
+
+#panel-buscador-clear {
+  position: absolute;
+  right: 8px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  color: #555;
+  font-size: 14px;
+  cursor: pointer;
+  display: none;
+  line-height: 1;
+  padding: 2px;
+}
+#panel-buscador-clear.visible { display: block; color: #39ff14; }
+#panel-buscador-clear:hover { color: #fff; }
+
+/* ── Botón reset mapa ────────────────────────────────────────── */
+#btn-reset-mapa {
+  width: 100%;
+  padding: 8px 10px;
+  margin-bottom: 10px;
+  background: transparent;
+  border: 1px solid #2a2a4a;
+  border-radius: 6px;
+  color: #888;
+  font-size: 12px;
+  cursor: pointer;
+  text-align: left;
+  letter-spacing: 0.04em;
+  transition: border-color 0.2s, color 0.2s, background 0.2s;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+#btn-reset-mapa:hover {
+  border-color: #39ff14;
+  color: #39ff14;
+  background: rgba(57,255,20,0.05);
+}
+
 /* ── Dropdown custom de tipos ─────────────────────────────────── */
 #tipo-custom {
   position: relative;
@@ -177,6 +240,11 @@ select:focus { outline: none; border-color: #39ff14; }
 
 .leaflet-container { background: #0a0a0f !important; }
 
+/* Filtro oscuro sobre los tiles de OSM */
+.leaflet-tile {
+  filter: invert(100%) hue-rotate(180deg) brightness(0.7) contrast(1.1) saturate(0.6);
+}
+
 /* ══════════════════════════════════════════════════════════════════
    MODAL FONDO
 ══════════════════════════════════════════════════════════════════ */
@@ -190,24 +258,32 @@ select:focus { outline: none; border-color: #39ff14; }
   z-index: 2000;
   justify-content: center;
   align-items: center;
+  padding: 16px;
 }
 #modal-fondo.activo { display: flex; }
 
 /* ══════════════════════════════════════════════════════════════════
-   MODAL
+   MODAL — max 900px, responsive
 ══════════════════════════════════════════════════════════════════ */
 #modal {
   background-color: #0d0d1a;
   border: 1px solid #39ff14;
   border-radius: 12px;
-  padding: 30px;
-  max-width: 820px;
-  width: 92%;
+  padding: 28px;
+  max-width: 900px;
+  width: 100%;
   position: relative;
-  box-shadow: 0 0 30px rgba(57,255,20,0.2);
-  max-height: 90vh;
+  box-shadow: 0 0 40px rgba(57,255,20,0.2);
+  max-height: calc(100vh - 32px);
   overflow-y: auto;
   overflow-x: hidden;
+}
+
+#modal-inner {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  width: 100%;
 }
 
 #modal-cerrar {
@@ -249,42 +325,61 @@ select:focus { outline: none; border-color: #39ff14; }
   font-weight: bold;
 }
 
-#modal-descripcion { color: #dddddd; font-size: 15px; line-height: 1.7; }
-
-/* ── Galería ─────────────────────────────────────────────────── */
+/* ── Galería: flechas sobre la imagen ────────────────────────── */
 #galeria {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  margin: 16px 0 8px 0;
-  overflow: hidden;
+  position: relative;
   width: 100%;
+  margin: 16px 0 4px 0;
+  border-radius: 8px;
+  overflow: hidden;
+  background: #0a0a0f;
+  border: 1px solid #39ff14;
+  line-height: 0;
 }
 
 #modal-imagen {
   width: 100%;
-  max-width: 100%;
-  max-height: 350px;
+  max-height: 420px;
   object-fit: contain;
-  border-radius: 8px;
-  border: 1px solid #39ff14;
-  background-color: #0a0a0f;
   display: block;
+  border-radius: 8px;
+  background-color: #0a0a0f;
 }
 
 #galeria-prev, #galeria-next {
-  background: #1a1a2e;
-  border: 1px solid #39ff14;
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  background: rgba(13,13,26,0.75);
+  border: 1px solid #39ff1488;
   color: #39ff14;
-  font-size: 20px;
-  padding: 8px 12px;
-  border-radius: 6px;
+  font-size: 22px;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
   cursor: pointer;
-  flex-shrink: 0;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  z-index: 5;
+  transition: background 0.15s, border-color 0.15s;
+  line-height: 1;
 }
-#galeria-prev:hover, #galeria-next:hover { background-color: #2a2a4a; }
+#galeria-prev { left: 10px; }
+#galeria-next { right: 10px; }
+#galeria-prev:hover, #galeria-next:hover {
+  background: rgba(57,255,20,0.18);
+  border-color: #39ff14;
+}
 
-#galeria-contador { text-align: center; color: #aaaaaa; font-size: 12px; margin-bottom: 16px; }
+#galeria-contador {
+  text-align: center;
+  color: #aaaaaa;
+  font-size: 12px;
+  margin: 6px 0 14px 0;
+}
+
+#modal-descripcion { color: #dddddd; font-size: 15px; line-height: 1.7; }
 
 /* ── Vídeo ───────────────────────────────────────────────────── */
 #modal-video { margin-top: 16px; width: 100%; aspect-ratio: 16/9; }
@@ -308,7 +403,6 @@ select:focus { outline: none; border-color: #39ff14; }
 }
 .li-tipo { font-size: 11px; font-weight: bold; }
 
-/* Icono SVG en cada item de la lista */
 .li-tipo-svg {
   width: 16px;
   height: 16px;
@@ -318,7 +412,7 @@ select:focus { outline: none; border-color: #39ff14; }
 }
 
 /* ══════════════════════════════════════════════════════════════════
-   LEYENDA con SVG reales — mismo tamaño que buscador (16px)
+   LEYENDA
 ══════════════════════════════════════════════════════════════════ */
 #leyenda {
   position: absolute;
@@ -348,7 +442,6 @@ select:focus { outline: none; border-color: #39ff14; }
   color: #ccc;
 }
 .leyenda-item:last-child { margin-bottom: 0; }
-
 .leyenda-svg {
   width: 16px;
   height: 16px;
@@ -356,6 +449,35 @@ select:focus { outline: none; border-color: #39ff14; }
   flex-shrink: 0;
   filter: drop-shadow(0 0 2px rgba(57,255,20,0.3));
 }
-.leaflet-tile {
-  filter: invert(100%) hue-rotate(180deg) brightness(0.7) contrast(1.1) saturate(0.6);
+
+/* ══════════════════════════════════════════════════════════════════
+   RESPONSIVE — móvil
+══════════════════════════════════════════════════════════════════ */
+@media (max-width: 600px) {
+  #contenedor {
+    flex-direction: column;
+    padding-bottom: 110px;
+  }
+  #panel {
+    width: 100%;
+    height: auto;
+    max-height: 44vh;
+    border-right: none;
+    border-bottom: 1px solid #1f1f3a;
+    padding: 12px 12px 0 12px;
+    overflow-y: auto;
+  }
+  #panel h1 { font-size: 15px; margin-bottom: 10px; }
+  #modal {
+    padding: 16px;
+    border-radius: 8px;
+    max-height: calc(100vh - 16px);
+  }
+  #modal h2 { font-size: 17px; }
+  #modal-imagen { max-height: 240px; }
+  #galeria-prev, #galeria-next {
+    width: 32px;
+    height: 32px;
+    font-size: 16px;
+  }
 }
