@@ -21,10 +21,11 @@ Proyecto desarrollado como **Trabajo de Fin de Grado** del Ciclo Formativo de Gr
 ## ✨ Funcionalidades
 
 - 🗺️ Mapa interactivo con 100 avistamientos georeferenciados, icono y color según el tipo de fenómeno
-- 🔎 Filtros dinámicos por país, año (contextual al país) y tipo de avistamiento, con contadores
-- 📋 Modal de detalle con galería de imágenes navegable, descripción y vídeo de YouTube embebido
-- 📊 Línea de tiempo interactiva sincronizada con los filtros
-- 🔍 Buscador en tiempo real sobre el mapa, con texto resaltado
+- 🔎 Filtros dinámicos en cascada: al seleccionar un país, el selector de año se actualiza mostrando solo los años disponibles para ese país. Incluye contadores contextuales en cada opción
+- 🔍 Buscador integrado en el panel lateral, con búsqueda en tiempo real por nombre, ciudad, país, año y descripción
+- 🌍 Botón de reset para volver a la vista del mapa mundial completo
+- 📋 Modal de detalle (hasta 900px) con galería de imágenes navegable mediante flechas superpuestas, descripción alineada al ancho de la imagen y vídeo de YouTube embebido
+- 📊 Línea de tiempo interactiva sincronizada con los filtros, responsive en móvil
 - 🔐 Panel de administración (login por sesión) con CRUD completo: crear, editar y eliminar avistamientos, subida múltiple de imágenes con previsualización
 
 ## 🛠️ Tecnologías
@@ -34,6 +35,7 @@ Proyecto desarrollado como **Trabajo de Fin de Grado** del Ciclo Formativo de Gr
 | HTML5 / CSS3 | Estructura y estilos |
 | JavaScript (ES6, sin frameworks) | Lógica de cliente: mapa, filtros, modal, buscador, timeline |
 | [Leaflet.js](https://leafletjs.com/) | Mapa interactivo |
+| [OpenStreetMap](https://www.openstreetmap.org/) | Tiles del mapa (sin API key) |
 | PHP | Backend: API JSON, login, panel admin, gestión de imágenes |
 | MySQL | Base de datos (100 registros) |
 | XAMPP | Servidor local de desarrollo |
@@ -45,14 +47,9 @@ Proyecto desarrollado como **Trabajo de Fin de Grado** del Ciclo Formativo de Gr
    git clone https://github.com/ken4ever/ufo-global-map.git
 ```
 2. Crea la base de datos `ovni_db` en phpMyAdmin e importa el archivo `avistamientos.sql`
-3. Copia `config.example.php` como `config.php` y define tu usuario/contraseña de administrador:
-```php
-   define('ADMIN_USER', 'tu_usuario');
-   define('ADMIN_PASS', 'tu_contraseña');
-```
-4. Arranca Apache y MySQL desde el panel de XAMPP
-5. Abre `http://localhost/ufo-global-map/` en el navegador
-6. Para acceder al panel de administración: `http://localhost/ufo-global-map/login.php`
+3. Arranca Apache y MySQL desde el panel de XAMPP
+4. Abre `http://localhost/ufo-global-map/` en el navegador
+5. Para acceder al panel de administración: `http://localhost/ufo-global-map/login.php`
 
 ## 📂 Estructura del proyecto
 
@@ -60,9 +57,7 @@ Proyecto desarrollado como **Trabajo de Fin de Grado** del Ciclo Formativo de Gr
 
 ├── style.css            # Estilos
 
-├── app.js                # Carga de datos, mapa, filtros, modal
-
-├── buscador.js          # Buscador en tiempo real
+├── app.js                # Carga de datos, mapa, filtros en cascada, buscador, modal
 
 ├── timeline.js          # Línea de tiempo
 
