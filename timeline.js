@@ -12,10 +12,13 @@
       display: flex;
       flex-direction: column;
       align-items: center;
-      padding: 0 16px 10px;
-      padding-left: 50px;
+      padding: 0 12px 10px;
       box-sizing: border-box;
       pointer-events: none;
+    }
+
+    @media (min-width: 600px) {
+      #timeline-container { padding-left: 316px; }
     }
 
     #tl-header {
@@ -72,6 +75,11 @@
       height: 72px;
       min-width: max-content;
       padding: 0 4px;
+    }
+
+    @media (max-width: 600px) {
+      .tl-bar { width: 14px !important; }
+      #tl-chart { gap: 2px; }
     }
 
     .tl-bar-wrap {
