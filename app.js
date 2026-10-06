@@ -31,7 +31,6 @@ function crearIcono(tipo) {
   });
 }
 
-// ─── Tamaño de iconos según zoom ─────────────────────────────────────────────
 function tamañoPorZoom(zoom) {
   if (zoom >= 10) return 48;
   if (zoom >= 7)  return 40;
@@ -74,6 +73,30 @@ const filtroAño  = document.getElementById('filtro-año');
 const filtroTipo = document.getElementById('filtro-tipo');
 const lista      = document.getElementById('lista');
 
+// ─── Buscador en panel ───────────────────────────────────────────────────────
+const panelBuscadorInput = document.getElementById('panel-buscador-input');
+const panelBuscadorClear = document.getElementById('panel-buscador-clear');
+let textoBusqueda = '';
+
+if (panelBuscadorInput) {
+  panelBuscadorInput.addEventListener('input', () => {
+    textoBusqueda = panelBuscadorInput.value.trim();
+    panelBuscadorClear.classList.toggle('visible', textoBusqueda.length > 0);
+    renderizarLista();
+  });
+  panelBuscadorClear.addEventListener('click', () => {
+    panelBuscadorInput.value = '';
+    textoBusqueda = '';
+    panelBuscadorClear.classList.remove('visible');
+    panelBuscadorInput.focus();
+    renderizarLista();
+  });
+}
+
+function normalizar(str) {
+  return (str || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+}
+
 // ─── Estado ──────────────────────────────────────────────────────────────────
 let imagenesActuales   = [];
 let indiceActual       = 0;
@@ -86,8 +109,9 @@ function actualizarImagen() {
     modalImagen.src             = imagenesActuales[indiceActual];
     modalImagen.style.display   = 'block';
     galeriaContador.textContent = `${indiceActual + 1} / ${imagenesActuales.length}`;
-    galeriaPrev.style.display   = imagenesActuales.length > 1 ? 'inline-block' : 'none';
-    galeriaNext.style.display   = imagenesActuales.length > 1 ? 'inline-block' : 'none';
+    const mostrar = imagenesActuales.length > 1;
+    galeriaPrev.style.display = mostrar ? 'flex' : 'none';
+    galeriaNext.style.display = mostrar ? 'flex' : 'none';
   } else {
     modalImagen.style.display   = 'none';
     galeriaContador.textContent = '';
@@ -143,11 +167,37 @@ modalFondo.addEventListener('click', (e) => {
   }
 });
 
+// ─── Filtros en cascada: país → filtra años disponibles ──────────────────────
+function reconstruirFiltroAño(paisSel, añoActual) {
+  const añosDisponibles = [...new Set(
+    todosAvistamientos
+      .filter(a => paisSel === '' || a.pais === paisSel)
+      .map(a => String(a.año))
+  )].sort();
+
+  const valorPrevio = añoActual || filtroAño.value;
+  filtroAño.innerHTML = '<option value="">📅 Todos los años</option>';
+  añosDisponibles.forEach(y => {
+    const opt = document.createElement('option');
+    opt.value = opt.textContent = y;
+    if (y === valorPrevio) opt.selected = true;
+    filtroAño.appendChild(opt);
+  });
+}
+
 // ─── Contadores contextuales ──────────────────────────────────────────────────
 function contarPor(campo, filtros) {
   return todosAvistamientos.reduce((acc, a) => {
     const pasa = Object.entries(filtros).every(([k, v]) => {
       if (k === campo || v === '') return true;
+      if (k === 'busqueda') {
+        const q = normalizar(v);
+        return normalizar(a.nombre).includes(q)      ||
+               normalizar(a.ciudad).includes(q)      ||
+               normalizar(a.pais).includes(q)        ||
+               normalizar(a.descripcion).includes(q) ||
+               String(a.año).includes(q);
+      }
       return String(a[k]) === v;
     });
     if (pasa) {
@@ -177,8 +227,10 @@ function renderizarLista() {
   const paisSel = filtroPais.value;
   const añoSel  = filtroAño.value;
   const tipoSel = filtroTipo.value;
-  const filtros = { pais: paisSel, año: añoSel, tipo: tipoSel };
+  const busqSel = textoBusqueda;
+  const filtros = { pais: paisSel, año: añoSel, tipo: tipoSel, busqueda: busqSel };
 
+  reconstruirFiltroAño(paisSel, añoSel);
   actualizarContadores(filtroPais, 'pais', filtros);
   actualizarContadores(filtroAño,  'año',  filtros);
   actualizarContadores(filtroTipo, 'tipo', filtros);
@@ -191,7 +243,14 @@ function renderizarLista() {
     const okPais = paisSel === '' || a.pais === paisSel;
     const okAño  = añoSel  === '' || String(a.año) === añoSel;
     const okTipo = tipoSel === '' || a.tipo === tipoSel;
-    return okPais && okAño && okTipo;
+    const okBusq = busqSel === '' || (
+      normalizar(a.nombre).includes(normalizar(busqSel))      ||
+      normalizar(a.ciudad).includes(normalizar(busqSel))      ||
+      normalizar(a.pais).includes(normalizar(busqSel))        ||
+      normalizar(a.descripcion).includes(normalizar(busqSel)) ||
+      String(a.año).includes(busqSel)
+    );
+    return okPais && okAño && okTipo && okBusq;
   });
 
   filtrados.forEach(a => {
@@ -205,7 +264,6 @@ function renderizarLista() {
     const li  = document.createElement('li');
     li.style.borderLeft = `3px solid ${cfg.color}`;
 
-    // ── Icono SVG real + label con color, igual que el buscador ──
     li.innerHTML = `
       <span class="li-nombre">${a.nombre}</span>
       <span class="li-detalle">
@@ -226,7 +284,10 @@ function renderizarLista() {
 }
 
 // ─── Event listeners de filtros ───────────────────────────────────────────────
-filtroPais.addEventListener('change', renderizarLista);
+filtroPais.addEventListener('change', () => {
+  filtroAño.value = '';
+  renderizarLista();
+});
 
 filtroAño.addEventListener('change', function () {
   if (window.timeline) window.timeline.setAñoExterno(this.value);
@@ -266,6 +327,14 @@ fetch('avistamientos.php')
     });
 
     renderizarLista();
+
+    // ── Botón reset mapa — se conecta aquí para garantizar que el mapa está listo
+    const btnResetMapa = document.getElementById('btn-reset-mapa');
+    if (btnResetMapa) {
+      btnResetMapa.addEventListener('click', () => {
+        map.setView([20, 0], 2, { animate: true });
+      });
+    }
   })
   .catch(err => console.error('Error cargando avistamientos:', err));
 
