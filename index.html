@@ -15,20 +15,33 @@
     <div id="panel">
       <h1>🛸 Avistamientos OVNI</h1>
 
+      <!-- Buscador integrado -->
+      <div id="panel-buscador">
+        <input id="panel-buscador-input" type="text"
+               placeholder="🔍 Buscar nombre, ciudad, país…"
+               autocomplete="off" spellcheck="false">
+        <button id="panel-buscador-clear" title="Limpiar">✕</button>
+      </div>
+
+      <!-- Botón reset vista mapa -->
+      <button id="btn-reset-mapa">🌍 Ver mapa mundial completo</button>
+
+      <!-- Filtro país (primero — condiciona el de año) -->
       <select id="filtro-pais">
         <option value="">🌍 Todos los países</option>
       </select>
 
+      <!-- Filtro año (se reconstruye en cascada según país) -->
       <select id="filtro-año">
         <option value="">📅 Todos los años</option>
       </select>
 
-      <!-- Select nativo OCULTO — app.js lo sigue leyendo sin cambios -->
+      <!-- Select nativo OCULTO — app.js lo sigue leyendo -->
       <select id="filtro-tipo" style="display:none">
         <option value="">Todos los tipos</option>
       </select>
 
-      <!-- Dropdown custom con SVG reales, mismo estilo que el buscador -->
+      <!-- Dropdown custom de tipos con SVG reales -->
       <div id="tipo-custom">
         <div id="tipo-selected">
           <span id="tipo-sel-icono">🔍</span>
@@ -75,27 +88,14 @@
 
     <!-- ── Mapa ── -->
     <div id="map">
-
-      <!-- Leyenda flotante con SVG reales -->
       <div id="leyenda">
         <div class="leyenda-titulo">Tipos de avistamiento</div>
-        <div class="leyenda-item">
-          <img src="img/platillo.svg"  class="leyenda-svg" alt="platillo"> Platillo
-        </div>
-        <div class="leyenda-item">
-          <img src="img/orbe.svg"      class="leyenda-svg" alt="orbe"> Orbe
-        </div>
-        <div class="leyenda-item">
-          <img src="img/triangulo.svg" class="leyenda-svg" alt="triángulo"> Triángulo
-        </div>
-        <div class="leyenda-item">
-          <img src="img/cigarro.svg"   class="leyenda-svg" alt="cigarro"> Cigarro
-        </div>
-        <div class="leyenda-item">
-          <img src="img/luces.svg"     class="leyenda-svg" alt="luces"> Luces
-        </div>
+        <div class="leyenda-item"><img src="img/platillo.svg"  class="leyenda-svg" alt="platillo"> Platillo</div>
+        <div class="leyenda-item"><img src="img/orbe.svg"      class="leyenda-svg" alt="orbe"> Orbe</div>
+        <div class="leyenda-item"><img src="img/triangulo.svg" class="leyenda-svg" alt="triángulo"> Triángulo</div>
+        <div class="leyenda-item"><img src="img/cigarro.svg"   class="leyenda-svg" alt="cigarro"> Cigarro</div>
+        <div class="leyenda-item"><img src="img/luces.svg"     class="leyenda-svg" alt="luces"> Luces</div>
       </div>
-
     </div>
   </div>
 
@@ -103,16 +103,18 @@
   <div id="modal-fondo">
     <div id="modal">
       <button id="modal-cerrar">✕</button>
-      <h2 id="modal-titulo"></h2>
-      <p id="modal-año-pais"></p>
-      <div id="galeria">
-        <button id="galeria-prev">&#8592;</button>
-        <img id="modal-imagen" src="" alt="Imagen del avistamiento" />
-        <button id="galeria-next">&#8594;</button>
+      <div id="modal-inner">
+        <h2 id="modal-titulo"></h2>
+        <p id="modal-año-pais"></p>
+        <div id="galeria">
+          <button id="galeria-prev">&#8592;</button>
+          <img id="modal-imagen" src="" alt="Imagen del avistamiento" />
+          <button id="galeria-next">&#8594;</button>
+        </div>
+        <p id="galeria-contador"></p>
+        <p id="modal-descripcion"></p>
+        <div id="modal-video"></div>
       </div>
-      <p id="galeria-contador"></p>
-      <p id="modal-descripcion"></p>
-      <div id="modal-video"></div>
     </div>
   </div>
 
@@ -120,10 +122,7 @@
   <script src="app.js"></script>
 
   <script>
-  /* ── Dropdown custom de tipos ─────────────────────────────────────────────
-     El <select id="filtro-tipo"> está oculto pero sigue activo en el DOM.
-     Este script maneja la UI visual y dispara los mismos eventos que antes.
-  ── */
+  /* ── Dropdown custom de tipos ── */
   (function () {
     const wrap     = document.getElementById('tipo-custom');
     const selEl    = document.getElementById('filtro-tipo');
@@ -140,22 +139,18 @@
       luces:     '#ffe600'
     };
 
-    /* Abrir / cerrar */
     document.getElementById('tipo-selected').addEventListener('click', e => {
       e.stopPropagation();
       wrap.classList.toggle('abierto');
     });
     document.addEventListener('click', () => wrap.classList.remove('abierto'));
 
-    /* Seleccionar opción */
     dropdown.querySelectorAll('.tipo-opt').forEach(opt => {
       opt.addEventListener('click', e => {
         e.stopPropagation();
         const val = opt.dataset.value;
-
         dropdown.querySelectorAll('.tipo-opt').forEach(o => o.classList.remove('selected'));
         opt.classList.add('selected');
-
         if (val === '') {
           selIco.innerHTML = '🔍';
           selLbl.textContent = 'Todos los tipos';
@@ -166,14 +161,12 @@
           selLbl.textContent = opt.querySelector('.tipo-opt-txt').textContent;
           selLbl.style.color = TIPO_COLOR[val] || '#fff';
         }
-
         selEl.value = val;
         selEl.dispatchEvent(new Event('change'));
         wrap.classList.remove('abierto');
       });
     });
 
-    /* Sincronizar contadores: observa cambios en el select oculto */
     const observer = new MutationObserver(() => {
       Array.from(selEl.options).forEach(opt => {
         const val = opt.value;
@@ -197,7 +190,7 @@
 
   <script src="welcome.js"></script>
   <script src="timeline.js"></script>
-  <script src="buscador.js"></script>
+  <!-- buscador.js eliminado: el buscador vive en el panel (app.js) -->
 
 </body>
 </html>
